@@ -53,13 +53,23 @@ jobs:
           java-version: "17"
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4.4.0
-      - name: Install Android emulator image
-        env:
-          API_LEVEL: ${{ matrix.api-level }}
-        run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platform-tools" "emulator" "platforms;android-${API_LEVEL}" "system-images;android-${API_LEVEL};google_apis;x86_64"
-          echo "no" | avdmanager create avd --force --name "qa-api-${API_LEVEL}" --package "system-images;android-${API_LEVEL};google_apis;x86_64" --device "pixel_2"
+      - name: Set up Android SDK
+  uses: android-actions/setup-android@v4
+  with:
+    packages: >-
+      platform-tools
+      emulator
+      platforms;android-${{ matrix.api-level }}
+      system-images;android-${{ matrix.api-level }};google_apis;x86_64
+      - name: Create Android emulator
+  env:
+    API_LEVEL: ${{ matrix.api-level }}
+  run: |
+    echo "no" | avdmanager create avd \
+      --force \
+      --name "qa-api-${API_LEVEL}" \
+      --package "system-images;android-${API_LEVEL};google_apis;x86_64" \
+      --device "pixel_2"
       - name: Boot emulator
         env:
           API_LEVEL: ${{ matrix.api-level }}
